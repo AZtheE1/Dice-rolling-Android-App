@@ -4,32 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_colors.dart';
 import 'setup_screen.dart';
 import 'single_player_setup.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  void _showComingSoon(BuildContext context, String mode) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.surface,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: Row(
-          children: [
-            const Icon(Icons.info_outline, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Text(
-              '$mode will be connected in next phase!',
-              style: GoogleFonts.outfit(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +76,14 @@ class HomeScreen extends StatelessWidget {
                       ),
                       // Profile Quick Icon
                       GestureDetector(
-                        onTap: () => _showComingSoon(context, 'Profile'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -269,7 +254,14 @@ class HomeScreen extends StatelessWidget {
                             Color(0xFF10B981),
                             Color(0xFF047857),
                           ],
-                          onTap: () => _showComingSoon(context, 'Profile Screen'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProfileScreen(),
+                              ),
+                            );
+                          },
                         )
                             .animate(delay: 650.ms)
                             .fadeIn(duration: 500.ms)
