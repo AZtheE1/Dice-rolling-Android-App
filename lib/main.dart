@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'core/theme/app_colors.dart';
+import 'providers/game_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const DiceGameApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => GameProvider(),
+      child: const DiceGameApp(),
+    ),
+  );
 }
 
 class DiceGameApp extends StatelessWidget {
@@ -26,7 +33,6 @@ class DiceGameApp extends StatelessWidget {
           surface: AppColors.surface,
         ),
       ),
-      // Splash screen set as initial screen
       home: const SplashScreen(),
     );
   }

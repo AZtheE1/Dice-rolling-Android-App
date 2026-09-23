@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_colors.dart';
+import 'setup_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -206,7 +207,14 @@ class HomeScreen extends StatelessWidget {
                             Color(0xFF4F46E5),
                           ],
                           isPrimary: true,
-                          onTap: () => _showComingSoon(context, 'Multiplayer Mode'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SetupScreen(),
+                              ),
+                            );
+                          },
                         )
                             .animate(delay: 350.ms)
                             .fadeIn(duration: 500.ms)
