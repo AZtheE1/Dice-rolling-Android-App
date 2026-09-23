@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_colors.dart';
 import 'setup_screen.dart';
+import 'single_player_setup.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -242,7 +243,15 @@ class HomeScreen extends StatelessWidget {
                             Color(0xFFEC4899),
                             Color(0xFFBE185D),
                           ],
-                          onTap: () => _showComingSoon(context, 'Single Player Mode'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SinglePlayerSetupScreen(),
+                              ),
+                            );
+                          },
                         )
                             .animate(delay: 500.ms)
                             .fadeIn(duration: 500.ms)

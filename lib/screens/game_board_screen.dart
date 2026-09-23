@@ -45,7 +45,20 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
   void _showWinnerDialog(BuildContext context, GameProvider game) {
     final winnerIndex = game.winnerIndex ?? 0;
-    final winnerColor = AppColors.playerColors[winnerIndex % AppColors.playerColors.length];
+    final isAiWinner = game.isSinglePlayer && winnerIndex == 1;
+    final winnerColor = isAiWinner
+        ? AppColors.secondary
+        : AppColors.playerColors[winnerIndex % AppColors.playerColors.length];
+
+    final winnerTitle = isAiWinner
+        ? 'AI BOT WON!'
+        : (game.isSinglePlayer ? 'YOU WON!' : 'VICTORY!');
+
+    final winnerSubtitle = isAiWinner
+        ? 'The Computer reached the goal first!'
+        : (game.isSinglePlayer
+            ? 'Congratulations! You defeated the AI!'
+            : 'Player ${winnerIndex + 1} Champion');
 
     showGeneralDialog(
       context: context,
@@ -77,39 +90,44 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Trophy Icon with glow
+                  // Trophy Icon
                   Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.amber.withValues(alpha: 0.18),
-                      border: Border.all(color: AppColors.amber, width: 2),
+                      color: (isAiWinner ? AppColors.secondary : AppColors.amber)
+                          .withValues(alpha: 0.18),
+                      border: Border.all(
+                        color: isAiWinner ? AppColors.secondary : AppColors.amber,
+                        width: 2,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.emoji_events_rounded,
-                      color: AppColors.amber,
-                      size: 44,
+                    child: Icon(
+                      isAiWinner ? Icons.smart_toy_rounded : Icons.emoji_events_rounded,
+                      color: isAiWinner ? AppColors.secondary : AppColors.amber,
+                      size: 42,
                     ),
                   ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 18),
 
                   Text(
-                    'VICTORY!',
+                    winnerTitle,
                     style: GoogleFonts.righteous(
-                      fontSize: 32,
+                      fontSize: 30,
                       letterSpacing: 2,
-                      color: AppColors.amber,
+                      color: isAiWinner ? AppColors.secondary : AppColors.amber,
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
                   Text(
-                    'Player ${winnerIndex + 1} Champion',
+                    winnerSubtitle,
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
@@ -118,7 +136,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   const SizedBox(height: 6),
 
                   Text(
-                    'Reached ${game.playerScores[winnerIndex]} points first!',
+                    'Final Score: ${game.playerScores[winnerIndex]} points',
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -127,14 +145,14 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
                   const SizedBox(height: 28),
 
-                  // Action Buttons
+                  // Actions
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
                             Navigator.of(dialogContext).pop();
-                            Navigator.of(context).pop(); // Back to setup/home
+                            Navigator.of(context).pop();
                           },
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
@@ -198,8 +216,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
       builder: (context, game, child) {
         _checkWinner(game);
 
-        final activeColor = AppColors.playerColors[
-            game.currentPlayerIndex % AppColors.playerColors.length];
+        final isAiCurrent = game.isSinglePlayer && game.currentPlayerIndex == 1;
+        final activeColor = isAiCurrent
+            ? AppColors.secondary
+            : AppColors.playerColors[
+                game.currentPlayerIndex % AppColors.playerColors.length];
 
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -293,7 +314,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child: Container(
-                              key: ValueKey(game.currentPlayerIndex),
+                              key: ValueKey('${game.currentPlayerIndex}_${game.isAiRolling}'),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 18,
                                 vertical: 6,
@@ -305,14 +326,33 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                                   color: activeColor.withValues(alpha: 0.4),
                                 ),
                               ),
-                              child: Text(
-                                "PLAYER ${game.currentPlayerIndex + 1}'S TURN",
-                                style: GoogleFonts.outfit(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.5,
-                                  color: activeColor,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isAiCurrent) ...[
+                                    const Icon(
+                                      Icons.smart_toy_rounded,
+                                      size: 16,
+                                      color: AppColors.secondary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                  ],
+                                  Text(
+                                    isAiCurrent
+                                        ? (game.isRolling
+                                            ? 'AI IS ROLLING...'
+                                            : 'AI BOT IS THINKING...')
+                                        : (game.isSinglePlayer
+                                            ? 'YOUR TURN TO ROLL'
+                                            : "PLAYER ${game.currentPlayerIndex + 1}'S TURN"),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.5,
+                                      color: activeColor,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -324,14 +364,16 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                             value: game.currentDiceValue,
                             isRolling: game.isRolling,
                             size: 140,
-                            onTap: game.isRolling ? null : () => game.rollDice(),
+                            onTap: (game.isRolling || game.isAiRolling || isAiCurrent)
+                                ? null
+                                : () => game.rollDice(),
                           ),
 
                           const SizedBox(height: 24),
 
                           Text(
                             game.isRolling
-                                ? 'Rolling the fate...'
+                                ? (isAiCurrent ? 'Bot rolling...' : 'Rolling...')
                                 : 'Rolled a ${game.currentDiceValue}!',
                             style: GoogleFonts.outfit(
                               fontSize: 15,
@@ -344,12 +386,15 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
                       const Spacer(),
 
-                      // BOTTOM SECTION: Prominent Roll Dice Action Button
+                      // BOTTOM SECTION: Roll Dice Action Button
                       SizedBox(
                         width: double.infinity,
                         height: 58,
                         child: ElevatedButton(
-                          onPressed: game.isRolling || game.hasWinner
+                          onPressed: (game.isRolling ||
+                                  game.isAiRolling ||
+                                  isAiCurrent ||
+                                  game.hasWinner)
                               ? null
                               : () => game.rollDice(),
                           style: ElevatedButton.styleFrom(
@@ -366,21 +411,25 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.casino,
+                                isAiCurrent
+                                    ? Icons.smart_toy_rounded
+                                    : Icons.casino,
                                 color: Colors.white.withValues(
-                                  alpha: game.isRolling ? 0.6 : 1.0,
+                                  alpha: (game.isRolling || isAiCurrent) ? 0.6 : 1.0,
                                 ),
                                 size: 28,
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                game.isRolling ? 'ROLLING...' : 'ROLL DICE',
+                                isAiCurrent
+                                    ? (game.isRolling ? 'AI IS ROLLING...' : 'AI IS THINKING...')
+                                    : (game.isRolling ? 'ROLLING...' : 'ROLL DICE'),
                                 style: GoogleFonts.outfit(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 1.5,
                                   color: Colors.white.withValues(
-                                    alpha: game.isRolling ? 0.6 : 1.0,
+                                    alpha: (game.isRolling || isAiCurrent) ? 0.6 : 1.0,
                                   ),
                                 ),
                               ),
@@ -424,10 +473,18 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     return Row(
       children: List.generate(game.numberOfPlayers, (index) {
         final isCurrent = index == game.currentPlayerIndex;
-        final playerColor =
-            AppColors.playerColors[index % AppColors.playerColors.length];
+        final isAiCard = game.isSinglePlayer && index == 1;
+
+        final playerColor = isAiCard
+            ? AppColors.secondary
+            : AppColors.playerColors[index % AppColors.playerColors.length];
+
         final score = game.playerScores[index];
         final progress = (score / game.goalScore).clamp(0.0, 1.0);
+
+        final label = game.isSinglePlayer
+            ? (index == 0 ? 'YOU' : 'AI BOT')
+            : 'P${index + 1}';
 
         return Expanded(
           child: Padding(
@@ -461,17 +518,14 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: playerColor,
-                        ),
+                      Icon(
+                        isAiCard ? Icons.smart_toy_rounded : Icons.person_rounded,
+                        size: 14,
+                        color: playerColor,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Text(
-                        'P${index + 1}',
+                        label,
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -489,7 +543,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  // Progress Bar to Goal
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
